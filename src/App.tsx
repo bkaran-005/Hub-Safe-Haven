@@ -25,7 +25,15 @@ import NotFound from "@/pages/NotFound";
 const queryClient = new QueryClient();
 
 const AppRoutes = () => {
-  const { isLoggedIn, role } = useAuth();
+  const { isLoggedIn, role, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
 
   if (!isLoggedIn) {
     return (
@@ -35,25 +43,47 @@ const AppRoutes = () => {
     );
   }
 
+  const rolePath = role === "resident" ? "student" : role;
+
   return (
     <>
       <Routes>
-        <Route path="/" element={<Navigate to={`/${role}`} replace />} />
-        <Route path="/student" element={<StudentHome />} />
-        <Route path="/student/outings" element={<StudentOutings />} />
-        <Route path="/student/complaints" element={<StudentComplaints />} />
-        <Route path="/student/mess" element={<StudentMess />} />
-        <Route path="/student/profile" element={<StudentProfile />} />
-        <Route path="/student/qr" element={<StudentQR />} />
-        <Route path="/warden" element={<WardenHome />} />
-        <Route path="/warden/outings" element={<WardenOutings />} />
-        <Route path="/warden/gate-scan" element={<WardenGateScan />} />
-        <Route path="/warden/complaints" element={<WardenComplaints />} />
-        <Route path="/warden/announcements" element={<WardenAnnouncements />} />
-        <Route path="/parent" element={<ParentHome />} />
-        <Route path="/parent/outings" element={<ParentOutings />} />
-        <Route path="/parent/attendance" element={<ParentAttendance />} />
-        <Route path="*" element={<NotFound />} />
+        <Route path="/" element={<Navigate to={`/${rolePath}`} replace />} />
+        
+        {/* Student Routes */}
+        {role === "resident" && (
+          <>
+            <Route path="/student" element={<StudentHome />} />
+            <Route path="/student/outings" element={<StudentOutings />} />
+            <Route path="/student/complaints" element={<StudentComplaints />} />
+            <Route path="/student/mess" element={<StudentMess />} />
+            <Route path="/student/profile" element={<StudentProfile />} />
+            <Route path="/student/qr" element={<StudentQR />} />
+          </>
+        )}
+
+        {/* Warden Routes */}
+        {role === "warden" && (
+          <>
+            <Route path="/warden" element={<WardenHome />} />
+            <Route path="/warden/outings" element={<WardenOutings />} />
+            <Route path="/warden/gate-scan" element={<WardenGateScan />} />
+            <Route path="/warden/complaints" element={<WardenComplaints />} />
+            <Route path="/warden/announcements" element={<WardenAnnouncements />} />
+          </>
+        )}
+
+        {/* Parent Routes */}
+        {role === "parent" && (
+          <>
+            <Route path="/parent" element={<ParentHome />} />
+            <Route path="/parent/outings" element={<ParentOutings />} />
+            <Route path="/parent/attendance" element={<ParentAttendance />} />
+          </>
+        )}
+
+        {/* Catch-all for wrong role paths or invalid routes */}
+        <Route path="*" element={<Navigate to={`/${rolePath}`} replace />} />
       </Routes>
       <BottomNav />
     </>

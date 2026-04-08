@@ -1,70 +1,89 @@
-import { attendanceData } from "@/data/dummyData";
-import { Download } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useStudentForParent } from "@/hooks/useStudentForParent";
+import { useAttendance } from "@/hooks/useAttendance";
+import { Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const ParentAttendance = () => {
-  const dates = Object.entries(attendanceData).sort(([a], [b]) => a.localeCompare(b));
-  const totalDays = dates.length;
-  const presentDays = dates.filter(([, s]) => s === "present").length;
-  const percentage = Math.round((presentDays / totalDays) * 100);
+  const { profile } = useAuth();
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const { student, loading: loadingStudent } = useStudentForParent(profile?.uid);
+  const { attendance, stats, loading: loadingAttendance } = useAttendance(student?.uid, currentMonth);
 
-  const weeks: (typeof dates)[] = [];
-  let currentWeek: typeof dates = [];
-  const firstDay = new Date(dates[0][0]).getDay();
-  for (let i = 0; i < firstDay; i++) currentWeek.push(["", "present"]);
-  dates.forEach(([date, status]) => {
-    currentWeek.push([date, status]);
-    if (new Date(date).getDay() === 6) {
-      weeks.push(currentWeek);
-      currentWeek = [];
-    }
-  });
-  if (currentWeek.length) weeks.push(currentWeek);
+  if (loadingStudent || loadingAttendance) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Prep calendar (simplified for current month)
+  const firstOfMonth = new Date(`${currentMonth}-01`);
+  const startOffset = firstOfMonth.getDay();
+  const daysInMonth = new Date(firstOfMonth.getFullYear(), firstOfMonth.getMonth() + 1, 0).getDate();
+  
+  const calendarCells = [];
+  for (let i = 0; i < startOffset; i++) calendarCells.push(null);
+  for (let i = 1; i <= daysInMonth; i++) {
+    const dateStr = `${currentMonth}-${i.toString().padStart(2, '0')}`;
+    const record = attendance.find(r => r.date === dateStr);
+    calendarCells.push({ day: i, status: record ? (record.present ? 'present' : 'absent') : 'none' });
+  }
 
   return (
     <div className="space-y-6 pb-20 p-4">
       <h1 className="text-xl font-bold text-foreground">Attendance</h1>
 
-      <div className="rounded-lg bg-card border border-border p-6 text-center">
-        <p className="text-4xl font-bold text-foreground">{percentage}%</p>
+      <div className="rounded-xl bg-card border border-border p-6 text-center animate-in zoom-in-95">
+        <p className="text-4xl font-bold text-foreground">{Math.round(stats.percentage)}%</p>
         <p className="text-sm text-muted-foreground mt-1">Monthly Attendance</p>
-        <p className="text-xs text-muted-foreground">{presentDays} of {totalDays} days present</p>
+        <p className="text-xs text-muted-foreground">{stats.present} of {stats.total} days logged</p>
       </div>
 
-      <div className="rounded-lg bg-card border border-border p-4">
-        <div className="grid grid-cols-7 gap-1 text-center mb-2">
+      <div className="rounded-xl bg-card border border-border p-4">
+        <div className="grid grid-cols-7 gap-1 text-center mb-4">
           {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-            <span key={i} className="text-[10px] text-muted-foreground">{d}</span>
+            <span key={i} className="text-[10px] uppercase font-bold text-muted-foreground">{d}</span>
           ))}
         </div>
-        {weeks.map((week, wi) => (
-          <div key={wi} className="grid grid-cols-7 gap-1 mb-1">
-            {week.map(([date, status], di) => (
-              <div
-                key={di}
-                className={cn(
-                  "h-7 w-full rounded-sm flex items-center justify-center text-[10px]",
-                  !date ? "bg-transparent" :
-                  status === "present" ? "bg-status-approved/30 text-status-approved" : "bg-status-rejected/30 text-status-rejected"
-                )}
-              >
-                {date ? new Date(date).getDate() : ""}
-              </div>
-            ))}
-            {Array.from({ length: 7 - week.length }).map((_, i) => (
-              <div key={`empty-${i}`} className="h-7" />
-            ))}
+        
+        <div className="grid grid-cols-7 gap-2">
+          {calendarCells.map((cell, idx) => (
+            <div
+              key={idx}
+              className={cn(
+                "h-8 w-full rounded-lg flex items-center justify-center text-xs font-medium transition-colors",
+                !cell ? "bg-transparent" :
+                cell.status === "present" ? "bg-status-approved/20 text-status-approved" : 
+                cell.status === "absent" ? "bg-status-rejected/20 text-status-rejected" :
+                "bg-secondary/50 text-muted-foreground"
+              )}
+            >
+              {cell?.day}
+            </div>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-4 mt-6 justify-center">
+          <div className="flex items-center gap-1.5">
+            <div className="h-3 w-3 rounded-full bg-status-approved/20 border border-status-approved/30" />
+            <span className="text-[10px] text-muted-foreground">Present</span>
           </div>
-        ))}
-        <div className="flex items-center gap-4 mt-3 justify-center">
-          <div className="flex items-center gap-1"><div className="h-3 w-3 rounded-sm bg-status-approved/30" /><span className="text-[10px] text-muted-foreground">Present</span></div>
-          <div className="flex items-center gap-1"><div className="h-3 w-3 rounded-sm bg-status-rejected/30" /><span className="text-[10px] text-muted-foreground">Absent</span></div>
+          <div className="flex items-center gap-1.5">
+            <div className="h-3 w-3 rounded-full bg-status-rejected/20 border border-status-rejected/30" />
+            <span className="text-[10px] text-muted-foreground">Absent</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="h-3 w-3 rounded-full bg-secondary/50 border border-border" />
+            <span className="text-[10px] text-muted-foreground">Not Marked</span>
+          </div>
         </div>
       </div>
 
-      <Button variant="outline" className="w-full gap-2">
-        <Download className="h-4 w-4" /> Export Report
+      <Button variant="outline" className="w-full gap-2 h-11 border-dashed hover:bg-secondary">
+        <Download className="h-4 w-4" /> Export Report (PDF)
       </Button>
     </div>
   );

@@ -1,10 +1,11 @@
-import { useAuth, Role } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { Role } from "@/services/authService";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Home, MapPin, MessageSquare, UtensilsCrossed, User, ScanLine, Megaphone, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs: Record<Role, { label: string; icon: React.ElementType; path: string }[]> = {
-  student: [
+  resident: [
     { label: "Home", icon: Home, path: "/student" },
     { label: "Outings", icon: MapPin, path: "/student/outings" },
     { label: "Complaints", icon: MessageSquare, path: "/student/complaints" },
@@ -26,7 +27,7 @@ const tabs: Record<Role, { label: string; icon: React.ElementType; path: string 
 };
 
 const accentMap: Record<Role, string> = {
-  student: "text-resident",
+  resident: "text-resident",
   warden: "text-warden",
   parent: "text-parent",
 };
