@@ -17,6 +17,7 @@ const tabs: Record<Role, { label: string; icon: React.ElementType; path: string 
     { label: "Outings", icon: MapPin, path: "/warden/outings" },
     { label: "Complaints", icon: MessageSquare, path: "/warden/complaints" },
     { label: "Gate Scan", icon: ScanLine, path: "/warden/gate-scan" },
+    { label: "Mess", icon: UtensilsCrossed, path: "/warden/mess" },
     { label: "Announce", icon: Megaphone, path: "/warden/announcements" },
   ],
   parent: [

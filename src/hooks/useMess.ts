@@ -10,14 +10,19 @@ export const useMess = (studentId: string | undefined, month: string) => {
     if (!studentId) return;
 
     const fetchData = async () => {
-      setLoading(true);
-      const [optins, history] = await Promise.all([
-        getMealOptins(studentId, month),
-        getPaymentHistory(studentId)
-      ]);
-      setMealOptins(optins);
-      setPayments(history);
-      setLoading(false);
+      try {
+        setLoading(true);
+        const [optins, history] = await Promise.all([
+          getMealOptins(studentId, month),
+          getPaymentHistory(studentId)
+        ]);
+        setMealOptins(optins);
+        setPayments(history);
+      } catch (e) {
+        console.error("Mess Load Error:", e);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchData();

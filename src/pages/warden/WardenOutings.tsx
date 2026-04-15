@@ -7,15 +7,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { LateReturnLog } from "@/components/LateReturnLog";
+import { useLateReturns } from "@/hooks/useLateReturns";
 import { cn } from "@/lib/utils";
 
 const WardenOutings = () => {
-  const [tab, setTab] = useState<"pending" | "history">("pending");
+  const [tab, setTab] = useState<"pending" | "history" | "late_logs">("pending");
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   
   const { outings, loading } = useAllOutings();
+  const { lateReturns, loading: loadingLate } = useLateReturns();
   const { toast } = useToast();
 
   const pending = outings.filter((o) => o.status === "pending");
@@ -50,7 +53,7 @@ const WardenOutings = () => {
     }
   };
 
-  if (loading) {
+  if (loading || loadingLate) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -63,73 +66,98 @@ const WardenOutings = () => {
       <h1 className="text-xl font-bold text-foreground">Outings</h1>
 
       <div className="flex gap-2">
-        {(["pending", "history"] as const).map((t) => (
+        {(["pending", "history", "late_logs"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={cn(
-              "rounded-full px-4 py-1.5 text-xs font-medium transition-colors capitalize",
+              "rounded-full px-4 py-1.5 text-xs font-medium transition-colors whitespace-nowrap",
               tab === t ? "bg-warden text-warden-foreground" : "bg-secondary text-muted-foreground"
             )}
           >
-            {t} {t === "pending" && pending.length > 0 && `(${pending.length})`}
+            {t === "pending" ? "Pending" : t === "history" ? "History" : "Late Logs"} 
+            {t === "pending" && pending.length > 0 && ` (${pending.length})`}
+            {t === "late_logs" && lateReturns.length > 0 && ` (${lateReturns.length})`}
           </button>
         ))}
       </div>
 
       <div className="space-y-3">
-        {list.map((o) => (
-          <div key={o.id} className="rounded-lg bg-card border border-border p-4 space-y-3">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium text-foreground">{o.studentName}</span>
-                <span className="text-xs text-muted-foreground">Room {o.roomNo}</span>
-              </div>
-              <StatusBadge status={o.status} />
+        {tab === "late_logs" ? (
+          <LateReturnLog outings={lateReturns} />
+        ) : (
+          <>
+            {list.map((o) => (
+              <div key={o.id} className="rounded-lg bg-card border border-border p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium text-foreground">{o.studentName}</span>
+                    <span className="text-xs text-muted-foreground">Room {o.roomNo}</span>
+                  </div>
+                  <StatusBadge status={o.status} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-3 w-3 text-warden" />
+                  <span className="text-sm text-foreground">{o.destination}</span>
+                </div>
+                <p className="text-xs text-muted-foreground">{o.reason}</p>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Clock className="h-3 w-3" />
+                  {o.fromDate} {o.fromTime} — {o.toDate} {o.toTime}
+                </div>
+                {tab === "pending" && (
+                  <div className="flex gap-2 pt-1">
+                    <Button 
+                      size="sm" 
+                      className="flex-1 bg-status-approved hover:bg-status-approved/80 gap-1"
+                      onClick={() => handleApprove(o.id!)}
+                      disabled={isProcessing}
+                    >
+                      <Check className="h-3 w-3" /> Approve
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="destructive" 
+                      className="flex-1 gap-1" 
+                      onClick={() => setRejectId(o.id!)}
+                      disabled={isProcessing}
+                    >
+                      <X className="h-3 w-3" /> Reject
+                    </Button>
+                  </div>
+                )}
+              {tab === "history" && (o.exitTimestamp || o.returnTimestamp) && (
+                <div className="grid grid-cols-2 gap-2 text-[10px] text-muted-foreground uppercase font-bold border-t border-border pt-2 mt-1">
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-3 w-3 text-warden" />
+                    Exit: {o.exitTimestamp?.toDate?.()?.toLocaleTimeString?.() ?? "—"}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-3 w-3 text-resident" />
+                    Return: {o.returnTimestamp?.toDate?.()?.toLocaleTimeString?.() ?? "—"}
+                  </div>
+                  {o.minutesLate && (
+                    <div className="col-span-2 text-orange-500 font-bold flex items-center gap-1">
+                      ⚠ Returned {o.minutesLate} min late
+                    </div>
+                  )}
+                </div>
+              )}
+              {o.wardenNote && (
+                <div className="rounded bg-secondary p-2 mt-2">
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Warden's Note</p>
+                  <p className="text-xs text-foreground italic">"{o.wardenNote}"</p>
+                </div>
+              )}
             </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="h-3 w-3 text-warden" />
-              <span className="text-sm text-foreground">{o.destination}</span>
-            </div>
-            <p className="text-xs text-muted-foreground">{o.reason}</p>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              {o.fromDate} {o.fromTime} — {o.toDate} {o.toTime}
-            </div>
-            {tab === "pending" && (
-              <div className="flex gap-2 pt-1">
-                <Button 
-                  size="sm" 
-                  className="flex-1 bg-status-approved hover:bg-status-approved/80 gap-1"
-                  onClick={() => handleApprove(o.id!)}
-                  disabled={isProcessing}
-                >
-                  <Check className="h-3 w-3" /> Approve
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="destructive" 
-                  className="flex-1 gap-1" 
-                  onClick={() => setRejectId(o.id!)}
-                  disabled={isProcessing}
-                >
-                  <X className="h-3 w-3" /> Reject
-                </Button>
+            ))}
+            {list.length === 0 && (
+              <div className="text-center py-10 opacity-50">
+                <p className="text-sm">No outings found in this category.</p>
               </div>
             )}
-            {o.wardenNote && (
-              <div className="rounded bg-secondary p-2 mt-2">
-                <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Warden's Note</p>
-                <p className="text-xs text-foreground italic">"{o.wardenNote}"</p>
-              </div>
-            )}
-          </div>
-        ))}
-        {list.length === 0 && (
-          <div className="text-center py-10 opacity-50">
-            <p className="text-sm">No outings found in this category.</p>
-          </div>
+          </>
         )}
       </div>
 

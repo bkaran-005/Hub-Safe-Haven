@@ -9,6 +9,7 @@ import {
   query, 
   where, 
   orderBy, 
+  onSnapshot,
   serverTimestamp 
 } from "firebase/firestore";
 
@@ -85,4 +86,56 @@ export const getPaymentHistory = async (studentId: string) => {
   );
   const snapshot = await getDocs(q);
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Payment));
+};
+export interface FoodRating {
+  id?: string;
+  studentId: string;
+  studentName: string;
+  date: string;
+  meal: "breakfast" | "lunch" | "dinner";
+  rating: number;
+  remarks: string;
+  createdAt: any;
+}
+
+export const getTodayMenu = () => {
+  return {
+    breakfast: "Aloo Paratha & Curd",
+    lunch: "Dal Tadka, Rice, Mix Veg, & Roti",
+    dinner: "Paneer Masala, Jeera Rice, & Gulab Jamun"
+  };
+};
+
+export const saveFoodRating = async (studentId: string, studentName: string, date: string, meal: FoodRating["meal"], rating: number, remarks: string) => {
+  const docId = `${studentId}_${date}_${meal}`;
+  return await setDoc(doc(db, "mess_ratings", docId), {
+    studentId,
+    studentName,
+    date,
+    meal,
+    rating,
+    remarks,
+    createdAt: serverTimestamp(),
+  });
+};
+
+export const watchTodayRatings = (date: string, callback: (ratings: FoodRating[]) => void, onError?: (error: any) => void) => {
+  const q = query(
+    collection(db, "mess_ratings"),
+    where("date", "==", date)
+  );
+  
+  return onSnapshot(q, (snapshot) => {
+    callback(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FoodRating)));
+  }, onError);
+};
+
+export const getStudentRatings = async (studentId: string, date: string) => {
+  const q = query(
+    collection(db, "mess_ratings"),
+    where("studentId", "==", studentId),
+    where("date", "==", date)
+  );
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => doc.data() as FoodRating);
 };

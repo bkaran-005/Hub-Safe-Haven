@@ -38,6 +38,7 @@ const StudentOutings = () => {
       await submitOutingRequest(profile.uid, {
         studentName: profile.name,
         roomNo: profile.roomNo || "",
+        phone: (profile as any).phone || "",
         ...formData,
         parentFcmToken: profile.parentFcmToken || "",
       });

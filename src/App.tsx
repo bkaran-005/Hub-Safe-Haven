@@ -16,11 +16,15 @@ import WardenHome from "@/pages/warden/WardenHome";
 import WardenOutings from "@/pages/warden/WardenOutings";
 import WardenGateScan from "@/pages/warden/WardenGateScan";
 import WardenComplaints from "@/pages/warden/WardenComplaints";
+import WardenMess from "@/pages/warden/WardenMess";
 import WardenAnnouncements from "@/pages/warden/WardenAnnouncements";
 import ParentHome from "@/pages/parent/ParentHome";
 import ParentOutings from "@/pages/parent/ParentOutings";
 import ParentAttendance from "@/pages/parent/ParentAttendance";
 import NotFound from "@/pages/NotFound";
+import { SOSAlert } from "@/components/SOSAlert";
+import { OverdueAlert } from "@/components/OverdueAlert";
+
 
 const queryClient = new QueryClient();
 
@@ -69,6 +73,7 @@ const AppRoutes = () => {
             <Route path="/warden/outings" element={<WardenOutings />} />
             <Route path="/warden/gate-scan" element={<WardenGateScan />} />
             <Route path="/warden/complaints" element={<WardenComplaints />} />
+            <Route path="/warden/mess" element={<WardenMess />} />
             <Route path="/warden/announcements" element={<WardenAnnouncements />} />
           </>
         )}
@@ -85,7 +90,10 @@ const AppRoutes = () => {
         {/* Catch-all for wrong role paths or invalid routes */}
         <Route path="*" element={<Navigate to={`/${rolePath}`} replace />} />
       </Routes>
+      <SOSAlert />
+      {role === "warden" && <OverdueAlert />}
       <BottomNav />
+
     </>
   );
 };

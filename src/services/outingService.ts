@@ -23,10 +23,12 @@ export interface OutingRequest {
   fromTime: string;
   toDate: string;
   toTime: string;
-  status: "pending" | "approved" | "rejected" | "exited" | "returned";
+  status: "pending" | "approved" | "rejected" | "exited" | "returned" | "returned_late";
   wardenNote?: string;
   exitTimestamp?: any;
   returnTimestamp?: any;
+  minutesLate?: number;
+  phone?: string;
   lateAlertSent?: boolean;
   parentFcmToken?: string;
   createdAt: any;
@@ -67,11 +69,18 @@ export const recordGateExit = async (outingId: string) => {
   });
 };
 
-export const recordGateReturn = async (outingId: string) => {
+export const recordGateReturn = async (outingId: string, toDate: string, toTime: string) => {
   const docRef = doc(db, COLLECTION_NAME, outingId);
+
+  const deadline = new Date(`${toDate}T${toTime}:00`);
+  const now      = new Date();
+  const isLate   = now > deadline;
+  const minutesLate = isLate ? Math.round((now.getTime() - deadline.getTime()) / 60000) : 0;
+
   return await updateDoc(docRef, {
-    status: "returned",
+    status: isLate ? "returned_late" : "returned",
     returnTimestamp: serverTimestamp(),
+    ...(isLate ? { minutesLate } : {}),
   });
 };
 
@@ -112,6 +121,18 @@ export const watchAllOutings = (callback: (outings: OutingRequest[]) => void, on
   const q = query(
     collection(db, COLLECTION_NAME),
     orderBy("createdAt", "desc")
+  );
+  return onSnapshot(q, (snapshot) => {
+    const outings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OutingRequest));
+    callback(outings);
+  }, onError);
+};
+
+export const watchLateReturns = (callback: (outings: OutingRequest[]) => void, onError?: (error: any) => void) => {
+  const q = query(
+    collection(db, COLLECTION_NAME),
+    where("status", "==", "returned_late"),
+    orderBy("returnTimestamp", "desc")
   );
   return onSnapshot(q, (snapshot) => {
     const outings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OutingRequest));

@@ -31,7 +31,7 @@ export const SOSButton = () => {
         variant: "destructive",
       });
       try {
-        await triggerSOS(profile.uid, profile.name, 0, 0);
+        await triggerSOS(profile.uid, profile.name, 0, 0, profile.roomNo, profile.phone);
         toast({ title: "SOS TRIGGERED", description: "Warden has been notified!", variant: "destructive" });
         setOpen(false);
       } catch (e: any) {
@@ -49,7 +49,9 @@ export const SOSButton = () => {
             profile.uid,
             profile.name,
             position.coords.latitude,
-            position.coords.longitude
+            position.coords.longitude,
+            profile.roomNo,
+            profile.phone
           );
           toast({ title: "SOS TRIGGERED", description: "Warden has been notified with your location!", variant: "destructive" });
           setOpen(false);
@@ -67,7 +69,7 @@ export const SOSButton = () => {
           variant: "destructive",
         });
         try {
-          await triggerSOS(profile.uid, profile.name, 0, 0);
+          await triggerSOS(profile.uid, profile.name, 0, 0, profile.roomNo, profile.phone);
           toast({ title: "SOS TRIGGERED", description: "Warden has been notified!", variant: "destructive" });
           setOpen(false);
         } catch (e: any) {
