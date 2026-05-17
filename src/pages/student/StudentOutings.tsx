@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Plus, MapPin, Clock, Loader2 } from "lucide-react";
+import { Plus, MapPin, Clock, Loader2, QrCode, ChevronDown, ChevronUp, Calendar, LogIn } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,10 +10,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useOutings } from "@/hooks/useOutings";
 import { submitOutingRequest } from "@/services/outingService";
 import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 
 const StudentOutings = () => {
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [expandedQR, setExpandedQR] = useState<string | null>(null);
   const { profile } = useAuth();
   const { outings, loading } = useOutings(profile?.uid);
   const { toast } = useToast();
@@ -78,7 +81,10 @@ const StudentOutings = () => {
 
       <div className="space-y-3">
         {outings.map((o) => (
-          <div key={o.id} className="rounded-lg bg-card border border-border p-4 space-y-2">
+          <div key={o.id} className={cn(
+            "rounded-xl bg-card border p-4 space-y-2 transition-all",
+            (o.status === "approved" || o.status === "exited") ? "border-status-approved/30" : "border-border"
+          )}>
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-resident" />
@@ -92,9 +98,43 @@ const StudentOutings = () => {
               {o.fromDate} {o.fromTime} — {o.toDate} {o.toTime}
             </div>
             {o.wardenNote && (
-              <div className="rounded bg-secondary/50 p-2 mt-2 border border-border/50">
+              <div className="rounded bg-secondary/50 p-2 mt-1 border border-border/50">
                 <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Warden's Note</p>
                 <p className="text-xs text-foreground italic">"{o.wardenNote}"</p>
+              </div>
+            )}
+
+            {/* Inline QR — only for approved or exited */}
+            {(o.status === "approved" || o.status === "exited") && (
+              <div className="border-t border-border/50 pt-2 mt-1">
+                <button
+                  onClick={() => setExpandedQR(expandedQR === o.id ? null : o.id!)}
+                  className="flex items-center gap-2 text-xs font-semibold text-status-approved hover:opacity-80 transition-opacity"
+                >
+                  <QrCode className="h-3.5 w-3.5" />
+                  {expandedQR === o.id ? "Hide Gate Pass QR" : "Show Gate Pass QR"}
+                  {expandedQR === o.id
+                    ? <ChevronUp className="h-3 w-3" />
+                    : <ChevronDown className="h-3 w-3" />
+                  }
+                </button>
+
+                {expandedQR === o.id && (
+                  <div className="flex flex-col items-center gap-2 mt-3 animate-in fade-in duration-200">
+                    <div className="rounded-2xl bg-white p-5 shadow-lg border-2 border-status-approved/40">
+                      <QRCodeSVG
+                        value={o.id!}
+                        size={180}
+                        bgColor="white"
+                        fgColor="#111111"
+                        level="H"
+                      />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground text-center">
+                      Show this to the warden at the gate
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -137,46 +177,71 @@ const StudentOutings = () => {
                 onChange={(e) => setFormData({...formData, reason: e.target.value})}
               />
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1.5">
-                <Label>From Date</Label>
-                <Input 
-                  type="date" 
-                  className="bg-secondary mt-1" 
-                  value={formData.fromDate}
-                  min={new Date().toISOString().split("T")[0]}
-                  onChange={(e) => setFormData({...formData, fromDate: e.target.value})}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>From Time</Label>
-                <Input 
-                  type="time" 
-                  className="bg-secondary mt-1" 
-                  value={formData.fromTime}
-                  onChange={(e) => setFormData({...formData, fromTime: e.target.value})}
-                />
+            {/* Departure */}
+            <div className="rounded-xl bg-secondary/40 border border-border p-3 space-y-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5 text-resident" /> Departure
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wider">Date</Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                    <Input
+                      type="date"
+                      className="bg-card border-border h-10 pl-8 text-sm"
+                      value={formData.fromDate}
+                      min={new Date().toISOString().split("T")[0]}
+                      onChange={(e) => setFormData({...formData, fromDate: e.target.value})}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wider">Time</Label>
+                  <div className="relative">
+                    <Clock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                    <Input
+                      type="time"
+                      className="bg-card border-border h-10 pl-8 text-sm"
+                      value={formData.fromTime}
+                      onChange={(e) => setFormData({...formData, fromTime: e.target.value})}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1.5">
-                <Label>Return Date</Label>
-                <Input 
-                  type="date" 
-                  className="bg-secondary mt-1" 
-                  value={formData.toDate}
-                  min={new Date().toISOString().split("T")[0]}
-                  onChange={(e) => setFormData({...formData, toDate: e.target.value})}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Return Time</Label>
-                <Input 
-                  type="time" 
-                  className="bg-secondary mt-1" 
-                  value={formData.toTime}
-                  onChange={(e) => setFormData({...formData, toTime: e.target.value})}
-                />
+
+            {/* Return */}
+            <div className="rounded-xl bg-secondary/40 border border-border p-3 space-y-3">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <LogIn className="h-3.5 w-3.5 text-status-approved" /> Return
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wider">Date</Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                    <Input
+                      type="date"
+                      className="bg-card border-border h-10 pl-8 text-sm"
+                      value={formData.toDate}
+                      min={formData.fromDate || new Date().toISOString().split("T")[0]}
+                      onChange={(e) => setFormData({...formData, toDate: e.target.value})}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] text-muted-foreground uppercase tracking-wider">Time</Label>
+                  <div className="relative">
+                    <Clock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                    <Input
+                      type="time"
+                      className="bg-card border-border h-10 pl-8 text-sm"
+                      value={formData.toTime}
+                      onChange={(e) => setFormData({...formData, toTime: e.target.value})}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
             <Button className="w-full mt-4" onClick={handleSubmit} disabled={submitting}>
