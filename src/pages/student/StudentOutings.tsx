@@ -12,6 +12,12 @@ import { submitOutingRequest } from "@/services/outingService";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 
+const CURFEW_TIME = "18:30"; // 6:30 PM
+
+const isCurfewViolation = (date: string, time: string): boolean => {
+  return time > CURFEW_TIME;
+};
+
 const StudentOutings = () => {
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -45,6 +51,22 @@ const StudentOutings = () => {
     }
     if (formData.toDate < formData.fromDate) {
       toast({ title: "Invalid Dates", description: "Return date cannot be before departure date", variant: "destructive" });
+      return;
+    }
+    if (isCurfewViolation(formData.toDate, formData.toTime)) {
+      toast({
+        title: "Curfew Violation ⚠️",
+        description: "Return time cannot be after 6:30 PM. Hostel curfew is at 6:30 PM.",
+        variant: "destructive"
+      });
+      return;
+    }
+    if (isCurfewViolation(formData.fromDate, formData.fromTime)) {
+      toast({
+        title: "Curfew Violation ⚠️",
+        description: "Departure time cannot be after 6:30 PM. Hostel curfew is at 6:30 PM.",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -238,11 +260,15 @@ const StudentOutings = () => {
                       type="time"
                       className="bg-card border-border h-10 pl-8 text-sm"
                       value={formData.toTime}
+                      max="18:30"
                       onChange={(e) => setFormData({...formData, toTime: e.target.value})}
                     />
                   </div>
                 </div>
               </div>
+              <p className="text-[10px] text-status-pending flex items-center gap-1">
+                ⚠ Curfew at 6:30 PM — return must be before this time
+              </p>
             </div>
             <Button className="w-full mt-4" onClick={handleSubmit} disabled={submitting}>
               {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}

@@ -60,10 +60,24 @@ const checkExitTiming = (o: OutingRequest): TimingResult => {
   return { ok: true, kind: "on_time", message: "Timing is correct. Proceed." };
 };
 
+const CURFEW_TIME = "18:30";
+
 /** Called when the warden is about to mark RETURN (status === "exited") */
 const checkReturnTiming = (o: OutingRequest): TimingResult => {
   const now      = new Date();
   const deadline = parseDateTime(o.toDate, o.toTime);
+  const nowTime  = now.toTimeString().slice(0, 5); // HH:MM
+
+  // Curfew violation — returned after 6:30 PM regardless of deadline
+  if (nowTime > CURFEW_TIME) {
+    const minutesLate = Math.round((now.getTime() - parseDateTime(o.toDate, CURFEW_TIME).getTime()) / 60000);
+    return {
+      ok: false,
+      kind: "late_return",
+      message: `⚠ CURFEW VIOLATION — Student returned after 6:30 PM curfew. ${minutesLate} min past curfew. Parent will be notified.`,
+      minutesLate
+    };
+  }
 
   if (now > deadline) {
     const minutesLate = Math.round((now.getTime() - deadline.getTime()) / 60000);
