@@ -1,12 +1,4 @@
-import { db } from "@/lib/firebase";
-import { 
-  collection, 
-  addDoc, 
-  onSnapshot, 
-  query, 
-  orderBy, 
-  serverTimestamp 
-} from "firebase/firestore";
+import { db, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from "@/lib/firebase";
 
 export interface Announcement {
   id?: string;
@@ -36,8 +28,8 @@ export const watchAnnouncements = (callback: (announcements: Announcement[]) => 
     collection(db, COLLECTION_NAME),
     orderBy("createdAt", "desc")
   );
-  return onSnapshot(q, (snapshot) => {
-    const announcements = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Announcement));
+  return onSnapshot(q, (snapshot: any) => {
+    const announcements = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as Announcement));
     callback(announcements);
   });
 };

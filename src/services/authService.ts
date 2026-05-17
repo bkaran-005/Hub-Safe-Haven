@@ -1,6 +1,4 @@
-import { auth, db } from "@/lib/firebase";
-import { signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { doc, getDoc, getDocs, query, collection, where, limit } from "firebase/firestore";
+import { auth, db, doc, getDoc, getDocs, query, collection, where, limit, signInWithEmailAndPassword, signOut } from "@/lib/firebase";
 
 export type Role = "resident" | "warden" | "parent";
 

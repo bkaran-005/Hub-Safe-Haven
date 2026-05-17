@@ -1,15 +1,4 @@
-import { db } from "@/lib/firebase";
-import { 
-  collection, 
-  setDoc, 
-  doc, 
-  onSnapshot, 
-  query, 
-  where, 
-  orderBy, 
-  getDocs,
-  serverTimestamp 
-} from "firebase/firestore";
+import { db, collection, setDoc, doc, onSnapshot, query, where, orderBy, getDocs, serverTimestamp } from "@/lib/firebase";
 
 export interface AttendanceRecord {
   studentId: string;
@@ -42,7 +31,7 @@ export const getMonthAttendance = async (studentId: string, month: string) => {
     where("date", "<=", `${month}-31`)
   );
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => doc.data() as AttendanceRecord);
+  return snapshot.docs.map((doc: any) => doc.data() as AttendanceRecord);
 };
 
 export const watchTodayAttendance = (date: string, callback: (records: AttendanceRecord[]) => void) => {
@@ -50,8 +39,8 @@ export const watchTodayAttendance = (date: string, callback: (records: Attendanc
     collection(db, COLLECTION_NAME),
     where("date", "==", date)
   );
-  return onSnapshot(q, (snapshot) => {
-    const records = snapshot.docs.map(doc => doc.data() as AttendanceRecord);
+  return onSnapshot(q, (snapshot: any) => {
+    const records = snapshot.docs.map((doc: any) => doc.data() as AttendanceRecord);
     callback(records);
   });
 };

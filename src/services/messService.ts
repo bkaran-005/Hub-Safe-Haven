@@ -1,17 +1,4 @@
-import { db } from "@/lib/firebase";
-import { 
-  collection, 
-  setDoc, 
-  addDoc,
-  doc, 
-  getDoc,
-  getDocs,
-  query, 
-  where, 
-  orderBy, 
-  onSnapshot,
-  serverTimestamp 
-} from "firebase/firestore";
+import { db, collection, setDoc, addDoc, doc, getDoc, getDocs, query, where, orderBy, onSnapshot, serverTimestamp } from "@/lib/firebase";
 
 export interface MealOptIn {
   studentId: string;
@@ -58,7 +45,7 @@ export const getMealOptins = async (studentId: string, month: string) => {
     where("date", "<=", `${month}-31`)
   );
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => doc.data() as MealOptIn);
+  return snapshot.docs.map((doc: any) => doc.data() as MealOptIn);
 };
 
 export const getMessFee = async (): Promise<HostelSettings | null> => {
@@ -85,8 +72,9 @@ export const getPaymentHistory = async (studentId: string) => {
     orderBy("paidAt", "desc")
   );
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Payment));
+  return snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as Payment));
 };
+
 export interface FoodRating {
   id?: string;
   studentId: string;
@@ -125,8 +113,8 @@ export const watchTodayRatings = (date: string, callback: (ratings: FoodRating[]
     where("date", "==", date)
   );
   
-  return onSnapshot(q, (snapshot) => {
-    callback(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FoodRating)));
+  return onSnapshot(q, (snapshot: any) => {
+    callback(snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as FoodRating)));
   }, onError);
 };
 
@@ -137,5 +125,5 @@ export const getStudentRatings = async (studentId: string, date: string) => {
     where("date", "==", date)
   );
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => doc.data() as FoodRating);
+  return snapshot.docs.map((doc: any) => doc.data() as FoodRating);
 };

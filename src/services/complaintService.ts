@@ -1,16 +1,4 @@
-import { db, storage } from "@/lib/firebase";
-import { 
-  collection, 
-  addDoc, 
-  updateDoc, 
-  doc, 
-  onSnapshot, 
-  query, 
-  where, 
-  orderBy, 
-  serverTimestamp 
-} from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db, storage, collection, addDoc, updateDoc, doc, onSnapshot, query, where, orderBy, serverTimestamp, ref, uploadBytes, getDownloadURL } from "@/lib/firebase";
 
 export interface Complaint {
   id?: string;
@@ -60,8 +48,8 @@ export const watchComplaints = (callback: (complaints: Complaint[]) => void, onE
     collection(db, COLLECTION_NAME),
     orderBy("createdAt", "desc")
   );
-  return onSnapshot(q, (snapshot) => {
-    const complaints = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Complaint));
+  return onSnapshot(q, (snapshot: any) => {
+    const complaints = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as Complaint));
     callback(complaints);
   }, onError);
 };
@@ -72,8 +60,8 @@ export const watchStudentComplaints = (studentId: string, callback: (complaints:
     where("studentId", "==", studentId),
     orderBy("createdAt", "desc")
   );
-  return onSnapshot(q, (snapshot) => {
-    const complaints = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Complaint));
+  return onSnapshot(q, (snapshot: any) => {
+    const complaints = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as Complaint));
     callback(complaints);
   }, onError);
 };

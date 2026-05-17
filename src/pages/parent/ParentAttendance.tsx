@@ -1,8 +1,7 @@
 import { useAuth } from "@/contexts/AuthContext";
 import { useStudentForParent } from "@/hooks/useStudentForParent";
 import { useAttendance } from "@/hooks/useAttendance";
-import { Download, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ParentAttendance = () => {
@@ -81,10 +80,6 @@ const ParentAttendance = () => {
           </div>
         </div>
       </div>
-
-      <Button variant="outline" className="w-full gap-2 h-11 border-dashed hover:bg-secondary">
-        <Download className="h-4 w-4" /> Export Report (PDF)
-      </Button>
     </div>
   );
 };

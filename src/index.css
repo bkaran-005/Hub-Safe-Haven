@@ -55,6 +55,57 @@
     --sidebar-border: 217 33% 17%;
     --sidebar-ring: 212 72% 37%;
   }
+
+  .light {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 212 72% 37%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 93%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 93%;
+    --muted-foreground: 215 20% 45%;
+
+    --accent: 210 40% 93%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214 32% 88%;
+    --input: 214 32% 88%;
+    --ring: 212 72% 37%;
+
+    --resident: 212 72% 37%;
+    --resident-foreground: 210 40% 98%;
+    --warden: 100 60% 28%;
+    --warden-foreground: 210 40% 98%;
+    --parent: 37 78% 41%;
+    --parent-foreground: 210 40% 98%;
+
+    --status-pending: 37 78% 41%;
+    --status-approved: 142 60% 28%;
+    --status-rejected: 0 84% 50%;
+    --status-resolved: 212 72% 40%;
+
+    --sidebar-background: 210 40% 96%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 212 72% 37%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 210 40% 93%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 88%;
+    --sidebar-ring: 212 72% 37%;
+  }
 }
 
 @layer base {
@@ -63,5 +114,18 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .page-transition {
+    animation: fadeSlideIn 0.2s ease-out;
+  }
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 }

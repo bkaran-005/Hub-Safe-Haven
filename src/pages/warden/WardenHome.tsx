@@ -5,7 +5,9 @@ import { useComplaints } from "@/hooks/useComplaints";
 import { useMessRatings } from "@/hooks/useMessRatings";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLateReturns } from "@/hooks/useLateReturns";
+import { useAllOutings } from "@/hooks/useAllOutings";
 import { LateReturnLog } from "@/components/LateReturnLog";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 
 const WardenHome = () => {
@@ -16,22 +18,17 @@ const WardenHome = () => {
   const { complaints, loading: loadingComplaints } = useComplaints();
   const { cumulativeStats, loading: loadingRatings } = useMessRatings(undefined, today);
   const { lateReturns, loading: loadingLate } = useLateReturns();
+  const { outings: allOutings } = useAllOutings();
   
   const openComplaintsCount = complaints.filter((c) => c.status === "open" || c.status === "in_progress").length;
-  const studentsOutCount = 0; 
+  const studentsOutCount = allOutings.filter(o => o.status === "exited").length;
 
   const isLoading = loadingOutings || loadingComplaints || loadingRatings || loadingLate;
 
   if (isLoading) {
     return (
-      <div className="flex flex-col min-h-screen items-center justify-center p-6 text-center gap-4">
+      <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-foreground">Loading dashboard data...</p>
-          <p className="text-xs text-muted-foreground max-w-xs">
-            If this takes too long, please check your <b>Browser Console (F12)</b> for a Firestore index link!
-          </p>
-        </div>
       </div>
     );
   }
@@ -44,7 +41,13 @@ const WardenHome = () => {
           <p className="text-sm text-muted-foreground">{profile?.name || "Warden"}</p>
         </div>
         <div className="flex items-center gap-2">
-          <NotificationBell count={pendingOutings.length} />
+          <NotificationBell
+              count={pendingOutings.length}
+              label="Pending Approvals"
+              storageKey="warden_notif_seen"
+              items={pendingOutings.map(o => ({ id: o.id, title: o.studentName, body: `Outing to ${o.destination}`, type: "outing" as const }))}
+            />
+          <ThemeToggle />
           <button 
             onClick={() => logout()}
             className="p-2 rounded-full border border-border bg-card text-status-rejected transition-colors hover:bg-status-rejected/10"

@@ -1,16 +1,4 @@
-import { db } from "@/lib/firebase";
-import { 
-  collection, 
-  addDoc, 
-  updateDoc, 
-  doc, 
-  onSnapshot, 
-  query, 
-  where, 
-  orderBy, 
-  getDoc,
-  serverTimestamp 
-} from "firebase/firestore";
+import { db, collection, addDoc, updateDoc, doc, onSnapshot, query, where, orderBy, getDoc, serverTimestamp } from "@/lib/firebase";
 
 export interface OutingRequest {
   id?: string;
@@ -99,8 +87,8 @@ export const watchStudentOutings = (studentId: string, callback: (outings: Outin
     where("studentId", "==", studentId),
     orderBy("createdAt", "desc")
   );
-  return onSnapshot(q, (snapshot) => {
-    const outings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OutingRequest));
+  return onSnapshot(q, (snapshot: any) => {
+    const outings = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as OutingRequest));
     callback(outings);
   }, onError);
 };
@@ -111,8 +99,8 @@ export const watchPendingOutings = (callback: (outings: OutingRequest[]) => void
     where("status", "==", "pending"),
     orderBy("createdAt", "desc")
   );
-  return onSnapshot(q, (snapshot) => {
-    const outings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OutingRequest));
+  return onSnapshot(q, (snapshot: any) => {
+    const outings = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as OutingRequest));
     callback(outings);
   }, onError);
 };
@@ -122,8 +110,8 @@ export const watchAllOutings = (callback: (outings: OutingRequest[]) => void, on
     collection(db, COLLECTION_NAME),
     orderBy("createdAt", "desc")
   );
-  return onSnapshot(q, (snapshot) => {
-    const outings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OutingRequest));
+  return onSnapshot(q, (snapshot: any) => {
+    const outings = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as OutingRequest));
     callback(outings);
   }, onError);
 };
@@ -134,8 +122,8 @@ export const watchLateReturns = (callback: (outings: OutingRequest[]) => void, o
     where("status", "==", "returned_late"),
     orderBy("returnTimestamp", "desc")
   );
-  return onSnapshot(q, (snapshot) => {
-    const outings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as OutingRequest));
+  return onSnapshot(q, (snapshot: any) => {
+    const outings = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as OutingRequest));
     callback(outings);
   }, onError);
 };

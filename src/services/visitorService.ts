@@ -1,15 +1,4 @@
-import { db } from "@/lib/firebase";
-import { 
-  collection, 
-  addDoc, 
-  updateDoc, 
-  doc, 
-  onSnapshot, 
-  query, 
-  where, 
-  orderBy, 
-  serverTimestamp 
-} from "firebase/firestore";
+import { db, collection, addDoc, updateDoc, doc, onSnapshot, query, where, orderBy, serverTimestamp } from "@/lib/firebase";
 
 export interface Visitor {
   id?: string;
@@ -47,8 +36,8 @@ export const watchTodayVisitors = (callback: (visitors: Visitor[]) => void) => {
     collection(db, COLLECTION_NAME),
     orderBy("createdAt", "desc")
   );
-  return onSnapshot(q, (snapshot) => {
-    const visitors = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Visitor));
+  return onSnapshot(q, (snapshot: any) => {
+    const visitors = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as Visitor));
     callback(visitors);
   });
 };

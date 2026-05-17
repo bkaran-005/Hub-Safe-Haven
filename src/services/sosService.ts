@@ -1,15 +1,4 @@
-import { db } from "@/lib/firebase";
-import { 
-  collection, 
-  addDoc, 
-  updateDoc, 
-  doc, 
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-  serverTimestamp 
-} from "firebase/firestore";
+import { db, collection, addDoc, updateDoc, doc, query, where, orderBy, onSnapshot, serverTimestamp } from "@/lib/firebase";
 
 export interface SOSLog {
   id?: string;
@@ -59,8 +48,8 @@ export const watchActiveSOS = (callback: (logs: SOSLog[]) => void, onError?: (er
     orderBy("timestamp", "desc")
   );
   
-  return onSnapshot(q, (snapshot) => {
-    const logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as SOSLog));
+  return onSnapshot(q, (snapshot: any) => {
+    const logs = snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() } as SOSLog));
     callback(logs);
   }, onError);
 };

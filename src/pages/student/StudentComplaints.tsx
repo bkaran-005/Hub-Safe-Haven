@@ -132,16 +132,9 @@ const StudentComplaints = () => {
           </div>
         ))}
         {filtered.length === 0 && (
-          <div className="text-center py-10 border-2 border-dashed border-border rounded-xl space-y-3">
-            <div className="opacity-50">
-              <p className="text-sm font-medium">No complaints found.</p>
-              <p className="text-[10px]">If you just raised one, it might be loading.</p>
-            </div>
-            <div className="bg-status-pending/5 p-3 rounded-lg mx-4">
-              <p className="text-[9px] text-status-pending leading-relaxed italic">
-                <b>Tip:</b> If your complaints are missing, please check the <b>Browser Console (F12)</b> for a link to build a <b>Firestore Index</b>.
-              </p>
-            </div>
+          <div className="text-center py-10 border-2 border-dashed border-border rounded-xl">
+            <p className="text-sm font-medium text-muted-foreground">No complaints found.</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">Tap + to raise a new complaint.</p>
           </div>
         )}
       </div>

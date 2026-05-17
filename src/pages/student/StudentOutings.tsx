@@ -32,6 +32,18 @@ const StudentOutings = () => {
       toast({ title: "Incomplete Form", description: "Please fill all fields.", variant: "destructive" });
       return;
     }
+    if (formData.toDate < formData.fromDate) {
+      toast({ title: "Invalid Dates", description: "Return date cannot be before departure date.", variant: "destructive" });
+      return;
+    }
+    if (formData.toDate === formData.fromDate && formData.toTime <= formData.fromTime) {
+      toast({ title: "Invalid Time", description: "Return time must be after departure time.", variant: "destructive" });
+      return;
+    }
+    if (formData.toDate < formData.fromDate) {
+      toast({ title: "Invalid Dates", description: "Return date cannot be before departure date", variant: "destructive" });
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -132,6 +144,7 @@ const StudentOutings = () => {
                   type="date" 
                   className="bg-secondary mt-1" 
                   value={formData.fromDate}
+                  min={new Date().toISOString().split("T")[0]}
                   onChange={(e) => setFormData({...formData, fromDate: e.target.value})}
                 />
               </div>
@@ -152,6 +165,7 @@ const StudentOutings = () => {
                   type="date" 
                   className="bg-secondary mt-1" 
                   value={formData.toDate}
+                  min={new Date().toISOString().split("T")[0]}
                   onChange={(e) => setFormData({...formData, toDate: e.target.value})}
                 />
               </div>

@@ -7,7 +7,10 @@ export const useAttendance = (studentId: string | undefined, month: string) => {
   const [stats, setStats] = useState({ present: 0, total: 0, percentage: 0 });
 
   useEffect(() => {
-    if (!studentId) return;
+    if (!studentId) {
+      setLoading(false);
+      return;
+    }
 
     const fetchAttendance = async () => {
       setLoading(true);

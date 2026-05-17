@@ -1,7 +1,36 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  updateDoc,
+  setDoc,
+  getDoc,
+  getDocs,
+  doc,
+  query,
+  where,
+  orderBy,
+  limit,
+  onSnapshot,
+  serverTimestamp,
+} from "firebase/firestore";
+
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+} from "firebase/auth";
+
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+} from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -12,10 +41,33 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+
 export const db = getFirestore(app);
+export const auth = getAuth(app);
 export const storage = getStorage(app);
+
+export {
+  collection,
+  addDoc,
+  updateDoc,
+  setDoc,
+  getDoc,
+  getDocs,
+  doc,
+  query,
+  where,
+  orderBy,
+  limit,
+  onSnapshot,
+  serverTimestamp,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+};
 
 export default app;

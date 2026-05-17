@@ -1,17 +1,18 @@
 import { NotificationBell } from "@/components/NotificationBell";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useNavigate } from "react-router-dom";
-import { MapPin, MessageSquare, CreditCard, QrCode, TrendingUp, AlertCircle, Wallet, Loader2 } from "lucide-react";
+import { MapPin, MessageSquare, CreditCard, QrCode, TrendingUp, AlertCircle, Wallet, Loader2, LogOut, Info } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOutings } from "@/hooks/useOutings";
 import { useComplaints } from "@/hooks/useComplaints";
 import { useAttendance } from "@/hooks/useAttendance";
 import { useAnnouncements } from "@/hooks/useAnnouncements";
 import { SOSButton } from "@/components/SOSButton";
-import { Info } from "lucide-react";
+
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const StudentHome = () => {
-  const { profile } = useAuth();
+  const { profile, logout } = useAuth();
   const navigate = useNavigate();
   
   const { outings, loading: loadingOutings } = useOutings(profile?.uid);
@@ -32,10 +33,27 @@ const StudentHome = () => {
 
   const isLoading = loadingOutings || loadingComplaints || loadingAttendance || loadingAnnouncements;
 
+  // Show skeleton while loading instead of full-screen spinner
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="space-y-6 pb-20 p-4 animate-pulse">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-6 w-36 rounded-lg bg-secondary" />
+            <div className="h-4 w-20 rounded-md bg-secondary" />
+          </div>
+          <div className="h-9 w-9 rounded-full bg-secondary" />
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          {[1,2,3].map(i => <div key={i} className="h-20 rounded-lg bg-secondary" />)}
+        </div>
+        <div className="grid grid-cols-4 gap-2">
+          {[1,2,3,4].map(i => <div key={i} className="h-16 rounded-lg bg-secondary" />)}
+        </div>
+        <div className="h-12 rounded-lg bg-secondary" />
+        <div className="space-y-2">
+          {[1,2,3].map(i => <div key={i} className="h-14 rounded-lg bg-secondary" />)}
+        </div>
       </div>
     );
   }
@@ -44,12 +62,26 @@ const StudentHome = () => {
     <div className="space-y-6 pb-20 p-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-foreground">Good day, {profile?.name.split(" ")[0]}</h1>
+          <h1 className="text-xl font-bold text-foreground">Good day, {profile?.name?.split(" ")[0]}</h1>
           <span className="inline-flex items-center gap-1 rounded-md bg-resident/20 px-2 py-0.5 text-xs font-medium text-resident">
             Room {profile?.roomNo || "N/A"}
           </span>
         </div>
-        <NotificationBell count={announcements.length} />
+        <div className="flex items-center gap-2">
+          <NotificationBell
+            count={announcements.length}
+            label="Announcements"
+            storageKey="student_notif_seen"
+            items={announcements.map(a => ({ id: a.id, title: a.title, body: a.body, type: "announcement" as const }))}
+          />
+          <ThemeToggle />
+          <button
+            onClick={() => logout()}
+            className="p-2 rounded-full border border-border bg-card text-status-rejected transition-colors hover:bg-status-rejected/10"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
@@ -94,7 +126,7 @@ const StudentHome = () => {
               <Info className="h-4 w-4 text-resident mt-0.5" />
               <div>
                 <p className="text-sm text-foreground font-medium">{a.title}</p>
-                <p className="text-xs text-muted-foreground line-clamp-1">{a.body}</p>
+                <p className="text-xs text-muted-foreground line-clamp-2">{a.body}</p>
               </div>
             </div>
           ))}

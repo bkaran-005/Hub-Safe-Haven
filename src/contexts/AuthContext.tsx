@@ -1,64 +1,75 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { auth } from "@/lib/firebase";
-import { onAuthStateChanged, User } from "firebase/auth";
-import { getUserDoc, UserProfile, logoutUser } from "@/services/authService";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
-interface AuthContextType {
-  user: User | null;
-  profile: UserProfile | null;
-  role: UserProfile["role"] | null;
-  isLoggedIn: boolean;
-  loading: boolean;
-  logout: () => Promise<void>;
-}
+import {
+  auth,
+  onAuthStateChanged,
+  db,
+  doc,
+  getDoc,
+  signOut,
+} from "@/lib/firebase";
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+const AuthContext = createContext<any>(null);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+export function AuthProvider({ children }: any) {
+  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
       if (firebaseUser) {
-        const userProfile = await getUserDoc(firebaseUser.uid);
-        if (userProfile) {
-          setProfile(userProfile);
-        } else {
-          console.error("User profile not found in Firestore");
-          setProfile(null);
+        try {
+          const userRef = doc(db, "users", firebaseUser.uid);
+          const userSnap = await getDoc(userRef);
+
+          if (userSnap.exists()) {
+            const data = userSnap.data();
+            setUser({
+              uid: firebaseUser.uid,
+              ...data,
+              name: data.name ?? data["Name"] ?? "",
+              role: data.role?.toLowerCase(),
+              roomNo: data.roomNo ?? data["Room NO."] ?? data["roomNo"] ?? "",
+              email: data.email ?? data["email"] ?? "",
+            });
+          } else {
+            console.error("User profile not found in Firestore");
+            setUser(null);
+          }
+        } catch (err) {
+          console.error(err);
+          setUser(null);
         }
       } else {
-        setProfile(null);
+        setUser(null);
       }
+
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
+  const isLoggedIn = !!user;
+  const role = user?.role ?? null;
+  const profile = user;
+
   const logout = async () => {
-    await logoutUser();
-    setUser(null);
-    setProfile(null);
+    await signOut(auth);
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        profile,
-        role: profile?.role || null,
-        isLoggedIn: !!user && !!profile,
-        loading,
-        logout,
-      }}
-    >
-      {children}
+    <AuthContext.Provider value={{ user, profile, isLoggedIn, role, loading, logout }}>
+      {!loading && children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => useContext(AuthContext);
+export function useAuth() {
+  return useContext(AuthContext);
+}

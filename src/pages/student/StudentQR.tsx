@@ -2,10 +2,11 @@ import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOutings } from "@/hooks/useOutings";
+import { useNavigate } from "react-router-dom";
 import {
   MapPin, Clock, Loader2, AlertCircle,
   CheckCircle2, LogOut, LogIn, QrCode,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, Plus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ const STATUS_CONFIG = {
 const StudentQR = () => {
   const { profile } = useAuth();
   const { outings, loading } = useOutings(profile?.uid);
+  const navigate = useNavigate();
   const [selectedIdx, setSelectedIdx] = useState(0);
 
   if (loading) {
@@ -66,12 +68,9 @@ const StudentQR = () => {
             level="H"
           />
         ) : (
-          <div className="h-[200px] w-[200px] flex flex-col items-center justify-center text-center gap-3 text-muted-foreground rounded-xl">
-            <AlertCircle className="h-12 w-12 opacity-20" />
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider">No Active Pass</p>
-              <p className="text-[10px] opacity-60 mt-1">Submit an outing request first</p>
-            </div>
+          <div className="h-[200px] w-[200px] flex flex-col items-center justify-center text-center gap-3">
+            <AlertCircle className="h-10 w-10 text-muted-foreground/30" />
+            <p className="text-xs font-semibold text-muted-foreground/50 uppercase tracking-wider">No Active Pass</p>
           </div>
         )}
       </div>
@@ -113,7 +112,7 @@ const StudentQR = () => {
       )}
 
       {/* Trip details */}
-      {currentOuting ? (
+      {currentOuting && (
         <div className="w-full max-w-xs rounded-2xl bg-card border border-border p-4 space-y-3 animate-in fade-in slide-in-from-bottom-2">
           <div className="flex items-center gap-2">
             <MapPin className="h-4 w-4 text-resident shrink-0" />
@@ -154,10 +153,17 @@ const StudentQR = () => {
             ID: {currentOuting.id}
           </p>
         </div>
-      ) : (
-        <p className="text-xs text-center text-muted-foreground max-w-[220px]">
-          Request an outing and wait for Warden approval to see your gate pass QR
-        </p>
+      )}
+
+      {!currentOuting && (
+        <div className="flex flex-col items-center gap-3 text-center">
+          <p className="text-sm text-muted-foreground max-w-[220px]">
+            You don't have an active gate pass. Request an outing and wait for warden approval.
+          </p>
+          <Button onClick={() => navigate("/student/outings")} className="gap-2 bg-resident hover:bg-resident/90 text-white">
+            <Plus className="h-4 w-4" /> Request Outing
+          </Button>
+        </div>
       )}
     </div>
   );
